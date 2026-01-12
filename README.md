@@ -1,7 +1,9 @@
 # Unsupervised image clustering via CNN feature extraction
 
 **Course:** Machine Learning
+
 **Project type:** Unsupervised learning (clustering)
+
 **Team members:**
 
 
