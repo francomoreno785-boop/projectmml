@@ -121,16 +121,6 @@ It provides the strongest cluster separation among the points it assigns to clus
 
 K-Means and hierarchical clustering remain strong alternatives, particularly when full data coverage or simpler interpretability is preferred.
 
-### Limitations and future work
-
-The primary limitation of this work is the absence of ground-truth labels, which restricts evaluation to internal metrics.
-Future work could include:
-
-* Exploring alternative CNN architectures for feature extraction.
-* Applying non-linear dimensionality reduction techniques.
-* Validating clusters through downstream tasks or domain-specific analysis.
-* Investigating hybrid or ensemble clustering approaches.
-
 ## Reproducibility
 
 All experiments are fully reproducible using the provided `main.ipynb` notebook.
