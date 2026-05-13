@@ -1,127 +1,105 @@
-# Unsupervised image clustering via CNN feature extraction
+# Unsupervised Clustering on the PatternMind Image Dataset
 
-**Course:** Machine Learning
+A machine learning course project. We extract image features with a pre-trained ResNet50 and apply three clustering algorithms — **K-Means**, **Hierarchical (Agglomerative)**, and **DBSCAN** — then compare them.
 
-**Project type:** Unsupervised learning (clustering)
+The dataset is organised in class folders, but we do not use those labels for clustering. We only use them at the end to check how well the clusters match the real classes.
 
-**Team members:**
+---
 
+## Authors
 
-## 1. Introduction
+- Tara Krstovic
+- Franco Moreno 
+- Maria ------
 
-The goal of this project is to analyze the structure of an unlabeled image dataset using unsupervised learning techniques.
-Since no ground-truth labels are available, the objective is not classification accuracy, but rather the discovery of meaningful and interpretable clusters based on visual similarity.
+---
 
-To achieve this, we design a complete machine learning pipeline that combines deep learning–based feature extraction with classical clustering algorithms. High-level visual features are extracted using a pre-trained convolutional neural network (CNN), after which multiple clustering approaches are applied and compared using internal evaluation metrics.
+## Course
 
-The project follows a structured workflow from data exploration and feature extraction to clustering, evaluation, and final model selection.
+- **Course:** Machine Learning
+- **University:** Luiss Guido Carli
+- **Academic year:** 2025/2026
 
-## 2. Methods
+---
 
-### 2.1 Data exploration
+## Dataset
 
-We begin with a light exploratory analysis to understand the size and structure of the dataset.
-Because the task is unsupervised, the purpose of this step is not label analysis, but rather to identify potential issues such as corrupted images, extreme imbalance, or anomalies that could affect clustering behavior.
+We use the **PatternMind** image dataset, provided as a single ZIP archive (`patternmind_dataset.zip`). It is organised with one folder per class.
 
-### 2.2 Feature extraction with CNNs
+We do not include the dataset in this repository. To run the notebook, place `patternmind_dataset.zip` in your Google Drive (for Colab) or next to the notebook (for local use).
 
-Clustering raw pixel values is ineffective due to their high dimensionality and lack of semantic structure.
-To address this, we use a pre-trained ResNet50 model as a fixed feature extractor.
+---
 
-Specifically:
+## What the project does
 
-* Images are resized and preprocessed according to the ResNet50 requirements.
-* The convolutional layers of the network are used to extract high-level feature vectors.
-* These feature vectors encode semantic visual information such as shapes, textures, and object structure.
+1. **Exploratory analysis** — counts the number of classes and images, checks for empty folders, duplicate filenames, and corrupted images.
+2. **Feature extraction** — passes every image through a pre-trained **ResNet50** to get a 2048-dimensional feature vector per image.
+3. **Preprocessing** — standardises the features and reduces them to 50 dimensions with **PCA**.
+4. **Clustering** — runs **K-Means**, **Hierarchical (Ward / complete / average)**, and **DBSCAN** on the PCA features.
+5. **Evaluation** — compares the methods using:
+   - Internal metrics: Silhouette, Calinski-Harabasz, Davies-Bouldin.
+   - External metrics: ARI and NMI against the folder labels (only for validation, not for choosing the model).
+6. **Final comparison** — summary table, side-by-side t-SNE visualisations, and a check of how much the three methods agree with each other.
 
-This approach allows us to leverage deep representations learned on large-scale image datasets while keeping the clustering task fully unsupervised.
+**Final choice:** K-Means with k = 30, which gave the best internal and external scores.
 
-### 2.3 Preprocessing and dimensionality reduction
+---
 
-Since distance-based clustering algorithms are sensitive to feature scale, all extracted feature vectors are standardized.
+## How to run
 
-To reduce dimensionality and improve computational efficiency, principal component analysis (PCA) is applied:
+### Google Colab (recommended)
 
-* PCA projects the data into a lower-dimensional space while retaining most of the variance.
-* The reduced representation is used for clustering.
-* PCA and t-SNE are also employed for qualitative visualization of cluster structure.
+1. Upload `main.ipynb` to Google Drive and open it in Colab.
+2. Place `patternmind_dataset.zip` in your Drive at `MyDrive/patternmind_dataset.zip`.
+3. Click **Runtime → Run all**.
 
-### 2.4 Clustering algorithms
+### Local Jupyter
 
-We apply and compare three clustering methods representing different modeling assumptions.
+1. Place `patternmind_dataset.zip` next to `main.ipynb`.
+2. Open the notebook and run all cells.
 
-**K-Means clustering**
-A centroid-based method that partitions the data into a fixed number of clusters by minimizing intra-cluster variance.
-It is used as the baseline due to its simplicity and interpretability.
+The notebook detects whether it is running on Colab and adjusts paths automatically.
 
-**Hierarchical clustering (agglomerative)**
-A bottom-up approach that incrementally merges samples into clusters.
-This method provides additional interpretability through hierarchical structure and does not rely on random initialization.
+---
 
-**DBSCAN (density-based spatial clustering of applications with noise)**
-A density-based method capable of discovering arbitrarily shaped clusters and explicitly identifying noise points, without requiring the number of clusters in advance.
+## Requirements
 
-All methods are applied to the same preprocessed feature representation to ensure a fair comparison.
+Python 3.10 or newer. On Colab everything is pre-installed. For local use:
 
-## 3. Experimental design
+```bash
+pip install numpy pandas matplotlib seaborn tqdm pillow scikit-learn scipy tensorflow
+```
 
-### Purpose
+A GPU helps with feature extraction but is not required.
 
-The experiment aims to determine which clustering approach best captures the underlying structure of the image feature space.
+---
 
-### Baseline
+## Files
 
-K-Means is used as the baseline method due to its efficiency, simplicity, and widespread use.
+```
+main.ipynb         The full project notebook.
+README.md          This file.
+images/            Figures generated when the notebook runs.
+```
 
-### Evaluation metrics
+The notebook also saves `.npy` files (features, labels, cluster assignments) so later sections can be re-run without redoing feature extraction.
 
-Because no labels are available, we rely on internal clustering metrics:
+---
 
-* Silhouette score (higher is better)
-* Davies–Bouldin index (lower is better)
-* Calinski–Harabasz index (higher is better)
+## Results summary
 
-For DBSCAN, we additionally consider the fraction of points labeled as noise, since high metric values may be obtained by clustering only a subset of the data.
+| Method | Best result |
+|--------|-------------|
+| K-Means (k = 30) | Best Silhouette, best ARI / NMI against folder labels |
+| Hierarchical Ward (k = 30) | Close second, agrees strongly with K-Means |
+| DBSCAN | Labels most points as noise — not a good fit for high-dimensional ResNet features |
 
-## 4. Results
+The full numbers are in Section 8 of the notebook.
 
-### Quantitative results
+---
 
-The clustering methods exhibit different behaviors:
+## Notes
 
-* K-Means produces stable and interpretable clusters with strong baseline performance.
-* Hierarchical clustering achieves comparable results, with additional interpretability at the cost of higher computational complexity.
-* DBSCAN often achieves the strongest internal clustering metrics, indicating very well-separated clusters among the points it assigns to clusters.
-
-However, DBSCAN also labels a portion of the dataset as noise, which requires careful interpretation.
-
-### DBSCAN noise interpretation
-
-To avoid selecting a model that clusters only a very small subset of the data, we introduce a noise fraction threshold.
-DBSCAN is preferred only if the fraction of points labeled as noise does not exceed 30%.
-If this threshold is exceeded, we fall back to the method with the strongest overall clustering metrics.
-
-This criterion provides a balanced trade-off between cluster quality and coverage of the dataset.
-
-### Qualitative analysis
-
-PCA and t-SNE visualizations support the quantitative findings:
-
-* K-Means and hierarchical clustering yield coherent and interpretable clusters.
-* DBSCAN forms very compact clusters for core points while explicitly identifying ambiguous or isolated samples as noise.
-
-Representative visualizations generated by the code are included in the `images/` folder.
-
-## 5. Conclusions
-
-This project demonstrates how deep feature extraction combined with classical clustering methods can effectively uncover structure in unlabeled image data.
-
-Based on the internal metric comparison and the imposed noise threshold, DBSCAN is selected as the final method.
-It provides the strongest cluster separation among the points it assigns to clusters, while also offering a principled way to handle outliers through noise detection.
-
-K-Means and hierarchical clustering remain strong alternatives, particularly when full data coverage or simpler interpretability is preferred.
-
-## Reproducibility
-
-All experiments are fully reproducible using the provided `main.ipynb` notebook.
-The notebook contains the complete pipeline, from data loading and feature extraction to clustering, evaluation, and visualization.
+- All random seeds are fixed (`RANDOM_STATE = 42`), so the results are reproducible.
+- The notebook is written to run top-to-bottom from a fresh kernel.
+- **Feature extraction is cached.** ResNet50 inference is the slow step; the notebook saves `X_features.npy`, `y_labels.npy`, `label_names.npy`, and `image_paths.npy` on the first run. On every later run those files are loaded from disk and the slow ResNet50 step is skipped automatically. On Colab the cache is also mirrored to `MyDrive/projectml_colab/` so it survives runtime resets.
