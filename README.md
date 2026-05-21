@@ -10,7 +10,7 @@ The dataset is organised into class folders, but we do **not** use those labels 
 
 - Tara Krstovic
 - Franco Moreno
-- Maria
+- Maria Nishtelkova
 
 ---
 
