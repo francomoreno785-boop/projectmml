@@ -30,48 +30,23 @@ The dataset is organised into class folders, but we do **not** use those labels 
 - **University:** Luiss Guido Carli
 - **Academic year:** 2025/2026
 
----
-
 ## Pipeline overview
-patternmind_dataset.zip   (25,557 images, 233 classes)
-                      │
-                      ▼
-          ┌────────────────────────┐
-          │   1. EDA               │   class counts, dimensions,
-          │      (Section 3)       │   integrity checks
-          └────────────┬───────────┘
-                       │
-                       ▼
-          ┌────────────────────────┐
-          │   2. ResNet50          │   ImageNet weights, no top,
-          │      feature extractor │   global avg pooling
-          │      (Section 4)       │   → (25557, 2048)
-          └────────────┬───────────┘
-                       │
-                       ▼
-          ┌────────────────────────┐
-          │   3. Preprocessing     │   StandardScaler + PCA-50
-          │      (Section 5)       │   → (25557, 50)
-          └────────────┬───────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        ▼              ▼              ▼
-   ┌─────────┐   ┌──────────────┐   ┌─────────┐
-   │ K-Means │   │ Hierarchical │   │ DBSCAN  │
-   │  k = 30 │   │   Ward k=30  │   │ε=15,m=15│
-   │  (§5)   │   │     (§6)     │   │   (§7)  │
-   └────┬────┘   └──────┬───────┘   └────┬────┘
-        │               │                 │
-        └───────────────┼─────────────────┘
-                        ▼
-          ┌────────────────────────┐
-          │  4. Comparison         │   Silhouette, CH, DB,
-          │     (Section 8)        │   ARI, NMI, method
-          │                        │   agreement, t-SNE
-          └────────────┬───────────┘
-                       ▼
-            ► K-Means selected as final model
 
+The notebook follows a single linear pipeline from raw images to a final clustering decision. There are four stages:
+
+**1. Exploratory Data Analysis (Section 3).** We start from `patternmind_dataset.zip` — 25,557 images across 233 class folders. We count the classes and images, plot the per-class distribution to expose the class imbalance, check for empty folders, duplicate filenames, and corrupted images, and sample 200 images to inspect their dimensions.
+
+**2. Feature extraction with ResNet50 (Section 4).** Every image is resized to 224 × 224 and passed through ResNet50, pre-trained on ImageNet, with the classification head removed (`include_top=False`) and global average pooling at the top (`pooling='avg'`). Each image is reduced to a 2048-dimensional feature vector. The final feature matrix has shape (25557, 2048) and is cached to disk so this slow step only runs once.
+
+**3. Preprocessing (Section 5).** Features are standardised with `StandardScaler` and projected down to 50 dimensions with PCA. The first 50 components retain roughly 44.1% of the variance — enough to preserve the dominant structure while making distance-based clustering far more tractable. The final clustering input has shape (25557, 50).
+
+**4. Clustering (Sections 5–7).** We then apply three clustering algorithms in parallel to the same preprocessed features:
+
+- **K-Means** with k = 30 (Section 5).
+- **Hierarchical (Agglomerative) clustering** with Ward linkage and k = 30 (Section 6).
+- **DBSCAN** with ε = 15 and min_samples = 15 (Section 7).
+
+**5. Comparison (Section 8).** All three methods are compared on the same internal metrics (Silhouette, Calinski-Harabasz, Davies-Bouldin) and external metrics (ARI, NMI against the folder labels), along with a side-by-side t-SNE visualisation and a method-agreement matrix. **K-Means is selected as the final model.**
   
 
 ## Why these three algorithms?
@@ -321,7 +296,7 @@ The notebook saves the following plots to disk when it runs end-to-end. They are
 | Class-distribution histogram | The imbalance across the 233 folders. |
 | PCA scree plot | Cumulative explained variance vs. number of components. |
 | K-Means silhouette curve | Silhouette score as a function of k (fine sweep). |
-| K-Means elbow plot | Inertia vs. k. |
+| K-Means elbow plot | Inertia (within-cluster sum of squares) plotted against k, used to identify the "elbow" where adding more clusters stops meaningfully reducing inertia. |
 | K-Means PCA-2D scatter | Final K-Means labels projected onto the first two principal components. |
 | K-Means t-SNE | Final K-Means labels in the t-SNE embedding. |
 | Cluster image grid (K-Means) | Sample images per cluster, for qualitative inspection. |
