@@ -232,7 +232,7 @@ Note: DBSCAN's internal metrics are computed only on non-noise points (4,358 / 2
 
 - **K-Means is the best method** on this dataset. Among methods that cluster the full dataset, it scores highest on both internal metrics (Silhouette, Davies-Bouldin) and external metrics (ARI, NMI). The qualitative cluster image grid also shows that K-Means clusters are dominated by a single ground-truth class in most cases.
 - **Hierarchical Ward is a close second** and agrees strongly with K-Means (high pairwise ARI). Because the two methods optimise different objectives but reach similar partitions, we can be more confident that the chosen partition reflects real structure in the data.
-- **DBSCAN does not work well here** — it labels a very large fraction of points as noise. This is not a hyperparameter problem; it is a structural mismatch between density-based clustering and high-dimensional deep features (explained in Section 7.10 of the notebook).
+- **DBSCAN does not work well here,** it labels a very large fraction of points as noise. This is not a hyperparameter problem; it is a structural mismatch between density-based clustering and high-dimensional deep features (explained in Section 7.10 of the notebook).
 - **Final choice:** **K-Means with k = 30**, on standardised PCA-50 ResNet50 features.
 
 ---
